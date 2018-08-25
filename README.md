@@ -29,3 +29,7 @@ eventualy crashing for large dataset.
 2 approximation methods: 'MarkovChain' uses the parameters enterd as MarkovParameters to estimate the entropy of the neural
 response with a history and a pace for the Markov chain given as inputs; 'MonteCarlo' uses a MonteCarlo estimation with a
 weight correction, the number of samples used for the estimation is given an input.
+
+
+**Tutorial**
+A tutorial on how to use *info_poisson_model_calculus.m* and *cumulative_info_poisson_model_calculus_MCJK.m* is given by the matlab live scripts *Tutorial_TimeVarying_Information.mlx*. This live script is provided with an example of the data obtained when running this script, and data are saved under ModelCell_InfoCumInfo_Tutorial.mat.
