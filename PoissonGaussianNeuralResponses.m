@@ -1,5 +1,5 @@
 function [PG_Index, FanoFactor_Index, Wins, Ymean, Yvar] = PoissonGaussianNeuralResponses(Trials,ParamModel,SWITCH, Cellname, Spectro)
-FIG=0;
+FIG=1;
 if nargin<2
     ParamModel = struct();
 end
@@ -99,11 +99,11 @@ for ww = 1:WinNum
         for tt=1:length(Trials{dd})
             y{ss}(tt)=sum((Trials{dd}{tt}>=FirstTimePoint).*(Trials{dd}{tt}<LastTimePoint));
         end
-        ymean(ss)=mean(y{ss});
+        ymean(ss)=mean(y{ss});   
         yvar(ss)=var(y{ss});
     end
-    Ymean(ww,:) = ymean;
-    Yvar(ww,:) = yvar;
+    Ymean(ww,:) = ymean;    % mean for each stimulus at time point ww
+    Yvar(ww,:) = yvar;      % variance for each stimulus at time point ww
     
     % Investigate how poisson or gaussian neural responses are for this
     % neuron

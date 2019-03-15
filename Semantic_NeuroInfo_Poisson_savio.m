@@ -2,7 +2,7 @@ function [PG_Index,FanoFactor_Index, Wins, Ymean, Yvar] = Semantic_NeuroInfo_Poi
 %[Calfilename_local] = Semantic_NeuroInfo_Poisson_savio(MatfilePath, SWITCH, ParamModel,Cellname)
 %[Calfilename_local] = Semantic_NeuroInfo_Poisson_savio(MatfilePath,CIType, SWITCH, ParamModel,Cellname)
 % [OptimalFreqCutOff] = Semantic_NeuroInfo_Poisson_savio(MatfilePath, SWITCH, ParamModel,Cellname)
-% [PG_Index,FanoFactor_Index, Wins] = Semantic_NeuroInfo_Poisson_savio(MatfilePath, SWITCH, ParamModel,Cellname)
+% [PG_Index,FanoFactor_Index, Wins, Ymean, Yvar] = Semantic_NeuroInfo_Poisson_savio(MatfilePath, SWITCH, ParamModel,Cellname)
 min_nargin = 2;
 %% Get the environment to figure out on which machine/cluster we are
 fprintf(1,'The environment is: %s\n',getenv('HOSTNAME'))
