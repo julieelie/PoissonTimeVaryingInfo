@@ -1,8 +1,8 @@
-function [Poisson_P, noiseCC, noiseCC_P] = PoissonTestNeuralResponses(Res,ParamModel)
+function [Poisson_P, noiseCC, noiseCC_P, noiseCCA, noiseCCA_P] = PoissonTestNeuralResponses(Res,ParamModel)
 
 % Global argurments
-figFlg=1;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
-nBoot = 100; % Number of boot points
+figFlg=0;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
+nBoot = 1000; % Number of boot points
 
 % Arguments that are passed.
 if nargin<2
@@ -33,12 +33,13 @@ NbStim = length(DataSel);
 
 % Initialize output variables
 Poisson_P = nan(NbStim, WinNum);
-noiseCC = nan;
-noiseCC_P = nan;
 
 % Cumulative variables
 noiseCorr = 0.0;
 yVar = 0.0;
+noiseCorrA = 0.0;
+yVarA = 0.0;
+
 noiseCorrBS = zeros(1, nBoot);
 yVarBS = zeros(1, nBoot);
 nCorr = 0;
@@ -58,11 +59,13 @@ for is = 1:NbStim
         LL = 0;   % Log likelihood of data
         LLBoot = zeros(1,nBoot); % Log Likelihood bootstrapped
         rateBoot = sum(Res.PSTH_KDE_Filtered{DataSel(is)}(tStart:tEnd));
+        rateActual = sum(Res.PSTH{DataSel(is)}(tStart:tEnd));
         
         if ww > 1
             tStartLast = Wins(ww-1);
             tEndLast = tStartLast + ParamModel.Increment;
             rateBootLast = sum(Res.PSTH_KDE_Filtered{DataSel(is)}(tStartLast:tEndLast));
+            rateActualLast = sum(Res.PSTH{DataSel(is)}(tStartLast:tEndLast));
         end
          
         
@@ -77,25 +80,39 @@ for is = 1:NbStim
             % LL
             LL = LL + log(poisspdf(y, rateExpected));
             
-            if ww > 1
+            if ww > 1                
                 yLast = sum((trial{it}>=tStartLast).*(trial{it}<tEndLast));
-                rateExpectedLast = sum(rateJN(it, tStartLast:tEndLast));
+                
+                % Noise correlation using JN KDE               
+                rateExpectedLast = sum(rateJN(it, tStartLast:tEndLast));                
                 noiseCorr = noiseCorr + (yLast-rateExpectedLast)*(y-rateExpected);
                 yVar = yVar + (y-rateExpected)^2;
+                
+                % Noise correlation using actual rate
+                noiseCorrA = noiseCorrA + (yLast-rateActualLast)*(y-rateActual);
+                yVarA = yVarA + (y-rateActual)^2;
+                
                 nCorr = nCorr + 1;
             end
                 
             
             % Repeat for boostrap data
-            for ib = 1:nBoot
-                yBoot = poissrnd(rateBoot);
-                LLBoot(ib) = LLBoot(ib) +  log(poisspdf(yBoot, rateBoot));
-                if ww > 1
-                    noiseCorrBS(ib) = noiseCorrBS(ib) + (yBoot-rateBoot)*(yBootLast(it,ib)-rateBootLast);
-                    yVarBS(ib) = yVarBS(ib) + (yBoot-rateBoot)^2;                   
-                end
-                yBootLast(it, ib) = yBoot;
+            yBoot = poissrnd(rateBoot, 1, nBoot);
+            LLBoot = LLBoot + log(poisspdf(yBoot, rateBoot));
+            if ww > 1
+                noiseCorrBS = noiseCorrBS + (yBoot-rateBoot).*(yBootLast(it,:)-rateBootLast);
+                yVarBS = yVarBS + (yBoot-rateBoot).^2;
             end
+            yBootLast(it, :) = yBoot;
+            
+%             for ib = 1:nBoot               
+%                 LLBoot(ib) = LLBoot(ib) +  log(poisspdf(yBoot(ib), rateBoot));
+%                 if ww > 1
+%                     noiseCorrBS(ib) = noiseCorrBS(ib) + (yBoot(ib)-rateBoot)*(yBootLast(it,ib)-rateBootLast);
+%                     yVarBS(ib) = yVarBS(ib) + (yBoot(ib)-rateBoot)^2;                   
+%                 end
+%                 yBootLast(it, ib) = yBoot(ib);
+%             end
         end
         nDiscovery = sum(LLBoot > LL);
         Poisson_P(is, ww) = 1.0 - nDiscovery/nBoot;
@@ -114,21 +131,26 @@ for is = 1:NbStim
             l = axis;
             hold on;
             plot([noiseCorr/yVar noiseCorr/yVar], [l(3) l(4)], 'k--');
+            plot([noiseCorrA/yVarA noiseCorrA/yVarA], [l(3) l(4)], 'r--');
             title('Noise Correlations');
             hold off;
         end
             
     end
-    fprintf(1, 'Done with Stim %d/%d - %d/%d Windows Reject Poisson at 5%%\n', is, NbStim, sum(Poisson_P(is,:)<= 0.05), WinNum);
-    fprintf(1, '\t Running NoiseCC = %.3f\n', noiseCorr/yVar);
+    fprintf(1, 'Stim %d/%d - %d/%d Reject Poisson\n', is, NbStim, sum(Poisson_P(is,:)<= 0.05), WinNum);
+    fprintf(1, '\t NoiseCC = %.3f\n', noiseCorr/yVar);
 end
 
 noiseCC = noiseCorr/yVar;
+noiseCCA = noiseCorrA/yVarA;
 noiseCCBS = noiseCorrBS./yVarBS;
 
 % Two tail test
 nDiscovery = sum(abs(noiseCC) < noiseCCBS) + sum(-abs(noiseCC) > noiseCCBS);  % number of times BS value is more extreme than actual value
 noiseCC_P = nDiscovery/nBoot;
+
+nDiscovery = sum(abs(noiseCCA) < noiseCCBS) + sum(-abs(noiseCCA) > noiseCCBS); 
+noiseCCA_P = nDiscovery/nBoot;
 
 %% Plot if asked 
 if figFlg
@@ -158,6 +180,7 @@ if figFlg
     l = axis;
     hold on;
     plot([noiseCC noiseCC], [l(3) l(4)], 'k--');
+    plot([noiseCCA noiseCCA], [l(3) l(4)], 'k--');
     title(sprintf('Noise Correlations P=%.4f', noiseCC_P));
     hold off;
     
