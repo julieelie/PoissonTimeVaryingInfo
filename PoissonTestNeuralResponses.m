@@ -1,8 +1,8 @@
 function [Poisson_P, noiseCC, noiseCC_P] = PoissonTestNeuralResponses(Res,ParamModel)
 
 % Global argurments
-figFlg=0;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
-nBoot = 1000; % Number of boot points
+figFlg=1;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
+nBoot = 100; % Number of boot points
 
 % Arguments that are passed.
 if nargin<2
@@ -92,9 +92,9 @@ for is = 1:NbStim
                 LLBoot(ib) = LLBoot(ib) +  log(poisspdf(yBoot, rateBoot));
                 if ww > 1
                     noiseCorrBS(ib) = noiseCorrBS(ib) + (yBoot-rateBoot)*(yBootLast(it,ib)-rateBootLast);
-                    yVarBS(ib) = yVarBS(ib) + (yBoot-rateBoot)^2;
-                    yBootLast(it, ib) = yBoot;
+                    yVarBS(ib) = yVarBS(ib) + (yBoot-rateBoot)^2;                   
                 end
+                yBootLast(it, ib) = yBoot;
             end
         end
         nDiscovery = sum(LLBoot > LL);
@@ -152,6 +152,14 @@ if figFlg
     
     figure();
     histogram(reshape(Poisson_P, 1,  NbStim*WinNum));
+    
+    figure();
+    histogram(noiseCCBS);
+    l = axis;
+    hold on;
+    plot([noiseCC noiseCC], [l(3) l(4)], 'k--');
+    title(sprintf('Noise Correlations P=%.4f', noiseCC_P));
+    hold off;
     
 end
     
