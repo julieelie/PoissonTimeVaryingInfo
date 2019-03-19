@@ -52,10 +52,15 @@ for is = 1:NbStim
     rateJN = Res.JackKnife_KDE_Filtered{DataSel(is)};   % JN rate data
     yBootLast = zeros(length(trial), nBoot);            % to store the values of the last random data
     
+    indLast = min([length(Res.PSTH{DataSel(is)}), length(Res.PSTH_KDE_Filtered{DataSel(is)}), length(rateJN)]);
     for ww = 1:WinNum          
         tStart = Wins(ww);
         tEnd = tStart + ParamModel.Increment;
-
+        
+        if (tEnd > indLast) 
+            break;
+        end
+        
         LL = 0;   % Log likelihood of data
         LLBoot = zeros(1,nBoot); % Log Likelihood bootstrapped
         rateBoot = sum(Res.PSTH_KDE_Filtered{DataSel(is)}(tStart:tEnd));
