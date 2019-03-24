@@ -1,7 +1,7 @@
 function [Poisson_P, noiseCC, noiseCC_P, noiseCCA, noiseCCA_P, noiseCCC, noiseCCC_P, noiseCCCA, noiseCCCA_P] = PoissonTestNeuralResponses(Res,ParamModel)
 
 % Global argurments
-figFlg=1;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
+figFlg=0;     % Flag for plotting - 1 summary plots, 2 debugging plots + summary plots
 nBoot = 1000; % Number of boot points
 
 % Arguments that are passed.
