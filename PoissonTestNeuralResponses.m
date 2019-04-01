@@ -75,9 +75,17 @@ for is = 1:NbStim
         yTrial(it) = sum((trial{it}>=tBeg).*(trial{it}<tLast));
         rateJNTrial(it) = sum(rateJN(it, tBeg:tLast));
     end
-    yCorrTrial = (yTrial-rateJNTrial)./rateJNTrial;            % Correction factor for trial effects in % using the JN rate
-    yCorrATrial = (yTrial-rateActualTrial)/rateActualTrial;    % using actual rate
     
+    if rateJNTrial ~= 0.0
+        yCorrTrial = (yTrial-rateJNTrial)./rateJNTrial;            % Correction factor for trial effects in % using the JN rate
+    else
+        yCorrTrial = 0.0;
+    end
+    if rateActualTrial ~= 0.0
+        yCorrATrial = (yTrial-rateActualTrial)/rateActualTrial;    % using actual rate
+    else
+        yCorrATrial = 0.0;
+    end
     
     for ww = 1:WinNum          
         tStart = Wins(ww);
